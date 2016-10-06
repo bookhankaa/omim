@@ -178,8 +178,9 @@ vector<CategoriesHolder::Mapping> const CategoriesHolder::kLocaleMapping = {{"en
                                                                             {"fi", 27},
                                                                             {"el", 28},
                                                                             {"he", 29},
-                                                                            {"sw", 30}};
-vector<string> CategoriesHolder::kDisabledLanguages = {"el", "he", "sw"};
+                                                                            {"sw", 30},
+                                                                            {"pt-BR", 31}};
+vector<string> CategoriesHolder::kDisabledLanguages = {"el", "he", "sw", "pt-BR"};
 
 CategoriesHolder::CategoriesHolder(unique_ptr<Reader> && reader)
 {
@@ -363,6 +364,10 @@ int8_t CategoriesHolder::MapLocaleToInteger(string const & locale)
   ASSERT(
       find(kDisabledLanguages.begin(), kDisabledLanguages.end(), "en") == kDisabledLanguages.end(),
       ());
+
+  // Special handling of "pt_BR" locale, since it interfers with the "pt" one.
+  if (locale == "pt_BR")
+    return 31;
 
   for (auto const & entry : kLocaleMapping)
   {

@@ -191,6 +191,9 @@ string GetCurrentTwine()
     // Simplified Chinese by default for all other cases.
     return "zh-Hans";
   }
+  // Special handling of "pt_BR" locale, converted to "pt-BR" for consistency.
+  if (lang == "pt_BR")
+    return "pt-BR";
   // Use short (2 or 3 chars) versions for all other languages.
   return Normalize(lang);
 }
