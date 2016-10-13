@@ -115,7 +115,11 @@ void PrintAsCSV(vector<string> const & columns, ostream & out, char delimiter = 
       first = false;
     else
       out << delimiter;
-    bool needsQuotes = value.find('"') != string::npos || value.find(delimiter) != string::npos;
+    bool needsQuotes = false;
+    for (auto ch : value) {
+      if (ch == '"' || ch == delimiter || ch == '\n' || ch == '\r')
+        needsQuotes = true;
+    }
     if (!needsQuotes)
     {
       out << value;
@@ -129,6 +133,9 @@ void PrintAsCSV(vector<string> const & columns, ostream & out, char delimiter = 
         quoted.insert(pos, 1, '"');
         pos += 2;
       }
+      // Also replace newlines with spaces
+      replace(quoted.begin(), quoted.end(), '\r', ' ');
+      replace(quoted.begin(), quoted.end(), '\n', ' ');
       out << '"' << quoted << '"';
     }
   }
