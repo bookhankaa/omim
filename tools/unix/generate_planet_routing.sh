@@ -53,7 +53,7 @@ if [ "$1" == "pbf" ]; then
   export PLANET
   export INTDIR
   find "$TMPBORDERS" -name '*.poly' -print0 | xargs -0 -P $NUM_PROCESSES -I % \
-    sh -c '"$OSMCTOOLS/osmconvert" "$PLANET" --hash-memory=2000 -B="%" --complex-ways --out-pbf -o="$INTDIR/$(basename "%" .poly).pbf"'
+    sh -c '"$OSMCTOOLS/osmconvert" "$PLANET" --hash-memory=2000 -B="%" --complete-ways --out-pbf -o="$INTDIR/$(basename "%" .poly).pbf"'
   [ $? != 0 ] && fail "Failed to process all the regions"
   rm -r "$TMPBORDERS"
 

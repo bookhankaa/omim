@@ -272,20 +272,28 @@ if [ -n "$OPT_ROUTING" ]; then
     log "start_routing(): OSRM files have been already created, no need to repeat"
   else
     putmode "Step R: Starting OSRM files generation"
-    # If *.mwm.osm2ft were moved to INTDIR, let's put them back
-    [ -n "$EXIT_ON_ERROR" ] && set +e # Grep returns non-zero status
-    [ -z "$(ls "$TARGET" | grep \.mwm\.osm2ft)" -a -n "$(ls "$INTDIR" | grep \.mwm\.osm2ft)" ] && mv "$INTDIR"/*.mwm.osm2ft "$TARGET"
-    [ -n "$EXIT_ON_ERROR" ] && set -e
-
-    if [ -n "$ASYNC_PBF" ]; then
+    PBF_FLAG="${OSRM_FLAG}_pbf"
+    if [ -n "$ASYNC_PBF" -a ! -e "$PBF_FLAG" ]; then
       (
         bash "$ROUTING_SCRIPT" pbf >> "$PLANET_LOG" 2>&1
+        touch "$PBF_FLAG"
         bash "$ROUTING_SCRIPT" prepare >> "$PLANET_LOG" 2>&1
+        touch "$OSRM_FLAG"
+        rm "$PBF_FLAG"
       ) &
     else
       # Osmconvert takes too much memory: it makes sense to not extract pbfs asyncronously
-      bash "$ROUTING_SCRIPT" pbf >> "$PLANET_LOG" 2>&1
-      ( bash "$ROUTING_SCRIPT" prepare >> "$PLANET_LOG" 2>&1 ) &
+      if [ -e "$PBF_FLAG" ]; then
+        log "start_routing(): PBF files have been already created, skipping that step"
+      else
+        bash "$ROUTING_SCRIPT" pbf >> "$PLANET_LOG" 2>&1
+        touch "$PBF_FLAG"
+      fi
+      (
+        bash "$ROUTING_SCRIPT" prepare >> "$PLANET_LOG" 2>&1
+        touch "$OSRM_FLAG"
+        rm "$PBF_FLAG"
+      ) &
     fi
   fi
 fi
@@ -306,7 +314,17 @@ fi
 if [ "$MODE" == "features" ]; then
   putmode "Step 4: Generating features of everything into $TARGET"
   # Checking for coastlines, can't build proper mwms without them
-  [ ! -s "$INTDIR/WorldCoasts.geom" ] && fail "Please prepare coastlines and put WorldCoasts.geom to $INTDIR"
+  if [ ! -s "$INTDIR/WorldCoasts.geom" ]; then
+    COASTS="${COASTS-WorldCoasts.geom}"
+    if [ -s "$COASTS" ]; then
+      cp "$COASTS" "$INTDIR/WorldCoasts.geom"
+      RAWGEOM="${COASTS%.*}.rawgeom"
+      [ -s "$RAWGEOM" ] && cp "$RAWGEOM" "$INTDIR/WorldCoasts.rawgeom"
+    else
+      fail "Please prepare coastlines and put WorldCoasts.geom to $INTDIR"
+    fi
+  fi
+  [ -n "$OPT_WORLD" -a ! -s "$INTDIR/WorldCoasts.rawgeom" ] && fail "You need WorldCoasts.rawgeom in $INTDIR to build a world file"
   # 2nd pass - paralleled in the code
   PARAMS_SPLIT="-split_by_polygons -generate_features -emit_coasts"
   [ -n "$OPT_WORLD" ] && PARAMS_SPLIT="$PARAMS_SPLIT -generate_world"
@@ -353,6 +371,8 @@ if [ "$MODE" == "routing" ]; then
   if [ ! -e "$OSRM_FLAG" ]; then
     log "OSRM files are missing, skipping routing step."
   else
+    # If *.mwm.osm2ft were moved to INTDIR, let's put them back
+    [ -z "$(ls "$TARGET" | grep '\.mwm\.osm2ft')" -a -n "$(ls "$INTDIR" | grep '\.mwm\.osm2ft')" ] && mv "$INTDIR"/*.mwm.osm2ft "$TARGET"
     bash "$ROUTING_SCRIPT" mwm >> "$PLANET_LOG" 2>&1
   fi
   MODE=resources
@@ -403,6 +423,13 @@ if [ "$MODE" == "test" ]; then
   fi
 fi
 
+# Clean temporary indices
+if [ -n "$(ls "$TARGET" | grep '\.mwm$')" ]; then
+  for mwm in "$TARGET"/*.mwm; do
+    BASENAME="${mwm%.mwm}"
+    [ -d "$BASENAME" ] && rm -r "$BASENAME"
+  done
+fi
 # Cleaning up temporary directories
 rm "$STATUS_FILE"
 [ -f "$OSRM_FLAG" ] && rm "$OSRM_FLAG"

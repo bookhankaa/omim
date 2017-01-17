@@ -181,7 +181,7 @@ public:
   RawMemShortPointStorage(string const & name)
   : BasePointStorage(name)
   , m_file(name)
-  , m_data((size_t)0xFFFFFFFF)
+  , m_data(static_cast<size_t>(1) << 33)
   {
     InitStorage(EnableIf<ModeT>());
   }
