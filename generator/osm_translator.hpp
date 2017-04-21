@@ -213,7 +213,7 @@ protected:
       if (!isBoundary && p.first == "boundary")
         continue;
 
-      if (p.first == "place")
+      if (p.first == "place" || p.first == "wikipedia")
         continue;
 
       TBase::AddCustomTag(p);
