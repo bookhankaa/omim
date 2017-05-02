@@ -86,6 +86,7 @@ public:
     bool ForwardIsEnter() const { return m_forwardIsEnter; }
     VehicleMask GetRoadMask() const { return m_roadMask; }
     VehicleMask GetOneWayMask() const { return m_oneWayMask; }
+    void ReplaceFeatureId(uint32_t newFeatureId) { m_featureId = newFeatureId; }
 
   private:
     uint64_t m_osmId = 0;
@@ -200,7 +201,7 @@ public:
   static void DeserializeWeights(VehicleType /* vehicle */, CrossMwmConnector & connector,
                                  Source & src)
   {
-    CHECK(connector.m_weightsLoadState == WeightsLoadState::ReadyToLoad, ());
+    CHECK_EQUAL(connector.m_weightsLoadState, WeightsLoadState::ReadyToLoad, ());
     CHECK_GREATER(connector.m_granularity, 0, ());
 
     src.Skip(connector.m_weightsOffset);
@@ -254,6 +255,7 @@ private:
   static Weight constexpr kGranularity = 4;
   static_assert(kGranularity > 0, "kGranularity should be > 0");
 
+public:
   class Section final
   {
   public:
@@ -357,6 +359,7 @@ private:
     uint8_t GetBitsPerOsmId() const { return m_bitsPerOsmId; }
     uint8_t GetBitsPerMask() const { return m_bitsPerMask; }
     std::vector<Section> const & GetSections() const { return m_sections; }
+    void UpdateSizeTransitions(uint64_t size) { m_sizeTransitions = size; }
 
   private:
     uint32_t m_version = kLastVersion;
@@ -369,6 +372,7 @@ private:
     std::vector<Section> m_sections;
   };
 
+private:
   static uint32_t CalcBitsPerOsmId(std::vector<Transition> const & transitions);
 
   template <typename T>
