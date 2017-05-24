@@ -185,6 +185,7 @@ private:
       // Calculate depth field
       drule::KeysT keys;
       feature::GetDrawRule(ft, zoomLevel, keys);
+      feature::FilterRulesByRuntimeSelector(ft, zoomLevel, keys);
       drule::MakeUnique(keys);
       float depth = 0;
       for (size_t i = 0, count = keys.size(); i < count; ++i)
