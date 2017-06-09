@@ -1,14 +1,6 @@
 #!/usr/bin/env python2.7
 import os
 import sys
-
-# TODO: Make mwm an installable module.
-sys.path.append(
-    os.path.join(
-        os.path.dirname(__file__), '..', 'mwm'
-    )
-)
-
 import argparse
 import csv
 import mwm
