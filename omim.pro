@@ -35,6 +35,10 @@ SUBDIRS = 3party base coding geometry editor indexer routing routing_common sear
     generator_tool.depends = $$SUBDIRS
     SUBDIRS *= generator_tool
 
+    update_region_data.subdir = generator/update_region_data
+    update_region_data.depends = $$SUBDIRS
+    SUBDIRS *= update_region_data
+
     openlr_stat.subdir = openlr/openlr_stat
     openlr_stat.depends = $$SUBDIRS
     SUBDIRS *= openlr_stat
