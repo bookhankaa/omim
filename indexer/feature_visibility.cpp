@@ -228,6 +228,7 @@ namespace
     static const uint32_t wheelchair = classif().GetTypeByPath({ "wheelchair" });
     static const uint32_t sponsored = classif().GetTypeByPath({ "sponsored" });
     static const uint32_t internet = classif().GetTypeByPath({ "internet_access" });
+    static const uint32_t subwayMeta = classif().GetTypeByPath({ "subway_meta" });
 
     // Caching type length to exclude generic [wheelchair].
     uint8_t const typeLength = ftype::GetLevel(type);
@@ -247,7 +248,7 @@ namespace
 
     // We're okay with the type being already truncated above.
     ftype::TruncValue(type, 1);
-    if (wheelchair == type && typeLength == 2)
+    if ((wheelchair == type || subwayMeta == type) && typeLength == 2)
       return true;
 
     if (sponsored == type || internet == type)
