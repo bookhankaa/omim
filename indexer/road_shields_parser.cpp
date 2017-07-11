@@ -123,7 +123,15 @@ public:
         shield.m_type = FindNetworkShield(rawText.substr(0, slashPos));
       }
       if (!shield.m_name.empty() && shield.m_type != RoadShieldType::Hidden)
+      {
+        if (shield.m_type != RoadShieldType::Default)
+        {
+          // Delete a shield with the same text and default style, if present.
+          // Such shields are added first, since they come from plain "ref" tags.
+          result.erase({RoadShieldType::Default, shield.m_name, shield.m_additionalText});
+        }
         result.insert(std::move(shield));
+      }
     }
     return result;
   }
